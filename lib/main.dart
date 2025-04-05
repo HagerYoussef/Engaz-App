@@ -22,7 +22,7 @@ void main() async {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: AddAddressScreen(),
+        home: CancelOrder(),
       ),
     ),
   );
@@ -719,7 +719,7 @@ class _TranslationRequestPageState extends State<TranslationRequestPage> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         onPressed: pickFile,
-        icon: const Icon(Icons.upload_file, color: Colors.white),
+        icon: Image.asset("assets/images/img18.png"),
         label: const Text(
           'إضافة مرفقات',
           style: TextStyle(color: Colors.white),
@@ -835,7 +835,7 @@ class UploadButton extends StatelessWidget {
           ),
           IconButton(
             onPressed: onPressed,
-            icon: Icon(Icons.upload_file, color: Colors.black),
+            icon: Image.asset("assets/images/img18.png"),
           ),
         ],
       ),
@@ -2146,6 +2146,1035 @@ class _OtpScreen2State extends State<OtpScreen2> {
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class OrdersScreen extends StatefulWidget {
+  @override
+  _OrdersScreenState createState() => _OrdersScreenState();
+}
+
+class _OrdersScreenState extends State<OrdersScreen> {
+  bool isTranslationSelected = true;
+
+  final List<Map<String, String>> allOrders = [
+    {'status': 'جديد', 'receive': 'توصيل'},
+    {'status': 'حالي', 'receive': 'استلام من الفرع'},
+    {'status': 'منتهي', 'receive': 'تم التوصيل'},
+    {'status': 'ملغي', 'receive': 'لا يوجد استلام'},
+    {'status': 'جديد', 'receive': 'توصيل'},
+    {'status': 'حالي', 'receive': 'استلام من الفرع'},
+    {'status': 'منتهي', 'receive': 'تم التوصيل'},
+    {'status': 'ملغي', 'receive': 'لا يوجد استلام'},
+    {'status': 'جديد', 'receive': 'توصيل'},
+    {'status': 'حالي', 'receive': 'استلام من الفرع'},
+  ];
+
+  final Map<String, Map<String, dynamic>> statusDetails = {
+    'جديد': {
+      'text': 'قيد الانتظار',
+      'color': Colors.orange,
+      'image': 'assets/images/img16.png'
+    },
+    'حالي': {
+      'text': 'المندوب في الطريق إليك',
+      'color': Colors.blue,
+      'image': 'assets/images/img16.png'
+    },
+    'منتهي': {
+      'text': 'تم التسليم',
+      'color': Colors.green,
+      'image': 'assets/images/img16.png'
+    },
+    'ملغي': {
+      'text': 'تم إلغاء الطلب',
+      'color': Colors.red,
+      'image': 'assets/images/img16.png'
+    },
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: DefaultTabController(
+        length: 4,
+        child: Scaffold(
+          backgroundColor: Color(0xffFAFAFA),
+          appBar: AppBar(
+            title: Text('طلباتي', style: TextStyle(color: Colors.black)),
+            backgroundColor: Colors.white,
+            elevation: 0,
+            actions: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Image.asset("assets/images/img9.png"),
+              )
+            ],
+          ),
+          bottomNavigationBar: BottomNavigationBar(
+            items: [
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.home), label: 'الرئيسية'),
+              BottomNavigationBarItem(icon: Icon(Icons.list), label: 'طلباتي'),
+            ],
+          ),
+          body: Column(
+            children: [
+              Container(
+                width: 360,
+                height: 56,
+                margin: EdgeInsets.symmetric(vertical: 10, horizontal: 30),
+                decoration: BoxDecoration(
+                  color: Color(0xFFF2F2F2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          isTranslationSelected = true;
+                        });
+                      },
+                      child: _buildTabButton(
+                          'طلبات الترجمة', isTranslationSelected),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          isTranslationSelected = false;
+                        });
+                      },
+                      child: _buildTabButton(
+                          'طلبات الطباعة', !isTranslationSelected),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: Color(0xffF2F2F2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: TabBar(
+                  labelColor: Color(0xff409EDC),
+                  unselectedLabelColor: Color(0xffB3B3B3),
+                  indicatorColor: Colors.transparent,
+                  tabs: [
+                    Tab(text: 'جديد'),
+                    Tab(text: 'حالي'),
+                    Tab(text: 'منتهي'),
+                    Tab(text: 'ملغي'),
+                  ],
+                ),
+              ),
+              SizedBox(height: 5),
+              Expanded(
+                child: TabBarView(
+                  children: ['جديد', 'حالي', 'منتهي', 'ملغي'].map((tabStatus) {
+                    final filteredOrders = allOrders
+                        .where((order) => order['status'] == tabStatus)
+                        .toList();
+                    return filteredOrders.isEmpty
+                        ? Center(child: Text('لا يوجد طلبات'))
+                        : ListView.builder(
+                            itemCount: (filteredOrders.length / 5).ceil(),
+
+                            itemBuilder: (context, index) {
+                              final startIndex = index * 5;
+                              final endIndex =
+                                  (startIndex + 5) > filteredOrders.length
+                                      ? filteredOrders.length
+                                      : startIndex + 5;
+                              final ordersSubset =
+                                  filteredOrders.sublist(startIndex, endIndex);
+
+                              return Column(
+                                children: ordersSubset.map((order) {
+                                  final details =
+                                      statusDetails[order['status']]!;
+                                  return OrderItem(
+                                    statusText: details['text'],
+                                    receiveText: order['receive']!,
+                                    statusColor: details['color'],
+                                    statusImage: details['image'],
+                                  );
+                                }).toList(),
+                              );
+                            },
+                          );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabButton(String text, bool isSelected) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      decoration: BoxDecoration(
+        color: isSelected ? Color(0xff409EDC) : Colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: isSelected ? Colors.white : Colors.black,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+class OrderItem extends StatelessWidget {
+  final String statusText;
+  final String receiveText;
+  final Color statusColor;
+  final String statusImage;
+
+  const OrderItem({
+    Key? key,
+    required this.statusText,
+    required this.receiveText,
+    required this.statusColor,
+    required this.statusImage,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Card(
+        elevation: 0,
+        color: Colors.white,
+        margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Padding(
+          padding: EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('#125456',
+                      style: TextStyle(
+                          color: Color(0xff1D1D1D),
+                          fontWeight: FontWeight.bold)),
+                  Text('01:15 م - 22/01/2025',
+                      style: TextStyle(color: Colors.grey)),
+                ],
+              ),
+              SizedBox(height: 5),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Text('اللغه:',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xff1D1D1D))),
+                      SizedBox(width: 5),
+                      Text('الفرنسيه',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, color: Colors.blue)),
+                    ],
+                  ),
+                  Text(receiveText, style: TextStyle(color: Colors.grey)),
+                ],
+              ),
+              SizedBox(height: 5),
+              Row(
+                children: [
+                  Text('عدد المرفقات:',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xff1D1D1D))),
+                  SizedBox(width: 5),
+                  Text('5',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.blue)),
+                ],
+              ),
+              Divider(color: Color(0xffF2F2F2)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Image.asset(statusImage, width: 20),
+                      SizedBox(width: 5),
+                      Text(statusText, style: TextStyle(color: statusColor)),
+                    ],
+                  ),
+                  TextButton(
+                    onPressed: () {},
+                    child: Row(
+                      children: [
+                        Text('عرض الطلب', style: TextStyle(color: Colors.blue)),
+                        SizedBox(width: 5),
+                        Image.asset("assets/images/img17.png"),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class TranslationRequestPage2 extends StatefulWidget {
+  TranslationRequestPage2({super.key});
+
+  @override
+  _TranslationRequestPage2State createState() =>
+      _TranslationRequestPage2State();
+}
+
+class _TranslationRequestPage2State extends State<TranslationRequestPage2> {
+  final List<String> fileTypes = [
+    'assets/word.png',
+    'assets/excel.png',
+    'assets/pdf.png'
+  ];
+  List<PlatformFile> selectedFiles = [];
+  final List<String> availableLanguages = [
+    'إنجليزي(5 دينار /100 كلمة)',
+    'فرنسي(5 دينار /100 كلمة) ',
+    'اسباني(5 دينار /100 كلمة)',
+    'الماني(5 دينار /100 كلمة)',
+    'ايطالي(5 دينار /100 كلمة)',
+    'صيني(5 دينار /100 كلمة)'
+  ];
+  List<String> selectedLanguages = [];
+
+  void _addLanguage(String language) {
+    if (!selectedLanguages.contains(language)) {
+      setState(() {
+        selectedLanguages.add(language);
+      });
+    }
+  }
+
+  Future<void> pickFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+      if (result != null && result.files.isNotEmpty) {
+        PlatformFile file = result.files.first;
+
+        setState(() {
+          selectedFiles.add(file);
+        });
+
+        print("تم اختيار الملف: ${file.name}");
+      } else {
+        print("لم يتم اختيار أي ملف.");
+      }
+    } catch (e) {
+      print("حدث خطأ أثناء اختيار الملف: $e");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          leading: Icon(Icons.arrow_back_ios),
+          title: const Text('طلب ترجمة', style: TextStyle(color: Colors.black)),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.black),
+        ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Image.asset('assets/images/img5.png', height: 100),
+                ),
+                const SizedBox(height: 16),
+                Center(
+                  child: const Text(
+                    'طلب ترجمة جديد',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Center(
+                  child: const Text(
+                    'الرجاء اختيار اللغة المراد ترجمتها',
+                    style: TextStyle(fontSize: 14, color: Color(0xffB3B3B3)),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildDropdown('اللغة'),
+                _buildRadioSelection(),
+                const Text(
+                  'الملاحظات',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                _buildTextField('ادخل الملاحظات الخاصة بك ان وجدت'),
+                const SizedBox(height: 16),
+                const Text(
+                  'المرفقات المراد ترجمتها',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                UploadButton(
+                  onPressed: () {
+                    pickFile();
+                  },
+                ),
+                const SizedBox(height: 8),
+                _buildSelectedFilesList(),
+                const SizedBox(height: 16),
+                _buildSubmitButton(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String? selectedLanguage;
+
+  Widget _buildDropdown(String label) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        Container(
+          width: 343,
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF2F2F2),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              hint:
+                  Text(selectedLanguage ?? 'اختر اللغه المطلوب الترجمه اليها '),
+              isExpanded: true,
+              icon: const Icon(Icons.keyboard_arrow_down),
+              items: availableLanguages
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  if (value != null) {
+                    selectedLanguage = value;
+                    selectedLanguages.remove(value);
+                    selectedLanguages.insert(0, value);
+                  }
+                });
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMultiSelectDropdown(String label) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        Container(
+          width: 343,
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF2F2F2),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              hint: Text(selectedLanguages.isEmpty ? 'اختر' : ''),
+              isExpanded: true,
+              icon: const Icon(Icons.keyboard_arrow_down),
+              items: availableLanguages
+                  .where((lang) => !selectedLanguages.contains(lang))
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    selectedLanguages.add(value);
+                  });
+                }
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 10,
+          children: selectedLanguages.map((language) {
+            return Container(
+              width: 155,
+              height: 36,
+              padding: const EdgeInsets.only(right: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2F2F2),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(language, style: const TextStyle(fontSize: 9)),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        selectedLanguages.remove(language);
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 8.0),
+                      child: Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.red, width: 1.5),
+                        ),
+                        child: const Icon(Icons.close,
+                            size: 16, color: Colors.red),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRadioSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [DeliveryOptions()],
+    );
+  }
+
+  Widget _buildTextField(String label) {
+    return Container(
+      width: 343,
+      height: 109,
+      padding: const EdgeInsets.fromLTRB(12, 20, 12, 20),
+      decoration: BoxDecoration(
+        color: Color(0xFFF2F2F2),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            right: 5,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'IBM Plex Sans Arabic',
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+                height: 1.0,
+                letterSpacing: 0,
+                color: Color(0xFFB3B3B3),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: TextField(
+              maxLines: 3,
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFileUploadButton() {
+    return Center(
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        onPressed: pickFile,
+        icon: Image.asset("assets/images/img18.png"),
+        label: const Text(
+          'إضافة مرفقات',
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  String getFileIcon(String extension) {
+    switch (extension.toLowerCase()) {
+      case 'pdf':
+        return 'assets/images/img10.png';
+      case 'doc':
+      case 'docx':
+        return 'assets/images/img12.png';
+      case 'xls':
+      case 'xlsx':
+        return 'assets/images/img11.png';
+      default:
+        return 'assets/file.png';
+    }
+  }
+
+  Widget _buildSelectedFilesList() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: selectedFiles.map((file) {
+          String extension = file.extension ?? "";
+          String iconPath = getFileIcon(extension);
+
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  OpenFile.open(file.path);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Image.asset(iconPath, width: 60, height: 60),
+                ),
+              ),
+              Positioned(
+                top: -5,
+                left: -5,
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedFiles.remove(file);
+                    });
+                  },
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.red, width: 1.5),
+                    ),
+                    child: const Icon(Icons.close, size: 16, color: Colors.red),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  void openSelectedFile(String filePath) {
+    OpenFile.open(filePath);
+  }
+
+  Widget _buildSubmitButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        onPressed: () {},
+        child: const Text('إرسال الطلب',
+            style: TextStyle(color: Colors.white, fontSize: 16)),
+      ),
+    );
+  }
+}
+
+class OrderDetailsPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: Color(0xffF2F2F2),
+        appBar: AppBar(
+          backgroundColor: Color(0xffF2F2F2),
+          title: Text('تفاصيل الطلب'),
+          leading: Icon(Icons.arrow_back_ios_new),
+        ),
+        body: SingleChildScrollView(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              OrderInfo(),
+              SizedBox(height: 16.0),
+              DeliveryInfo(),
+              SizedBox(height: 16.0),
+              TranslationLanguages(),
+              SizedBox(height: 16.0),
+              NotesSection(),
+              SizedBox(height: 16.0),
+              AttachmentsSection(),
+              SizedBox(height: 16.0),
+              CancelOrderButton(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class OrderInfo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      color: Colors.white,
+      child: Padding(
+        padding: EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('رقم الطلب ',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('# 1265',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('تاريخ الطلب ',
+                    style:
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                Text('22/01/2025',
+                    style: TextStyle(
+                      fontSize: 14,
+                    )),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('وقت الطلب ',
+                    style:
+                        TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                Text('01:26 م',
+                    style: TextStyle(
+                      fontSize: 14,
+                    )),
+              ],
+            ),
+            SizedBox(height: 8.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Image.asset("assets/images/img16.png"),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text('تم استلام الطلب',
+                        style: TextStyle(color: Colors.orange)),
+                    Text('الاربعاء 22/01/2025 1:26 م ',
+                        style: TextStyle(color: Color(0xffB3B3B3))),
+                  ],
+                ),
+                CircleAvatar(
+                    backgroundColor: Color(0xff409EDC),
+                    child: Image.asset("assets/images/img19.png"))
+              ],
+            ),
+            Row(
+              children: [
+                Image.asset("assets/images/img20.png"),
+                Text("جاري تنفيذ الخدمه",
+                    style: TextStyle(color: Color(0xffB3B3B3)))
+              ],
+            ),
+            Row(
+              children: [
+                Image.asset("assets/images/img21.png"),
+                Text("في انتظارك للستلام ",
+                    style: TextStyle(color: Color(0xffB3B3B3)))
+              ],
+            ),
+            Row(
+              children: [
+                Image.asset("assets/images/img22.png"),
+                Text("تم تسليم الخدمه",
+                    style: TextStyle(color: Color(0xffB3B3B3)))
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DeliveryInfo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.white,
+      elevation: 0,
+      child: Padding(
+        padding: EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('الإستلام',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text('استلام من الشركه',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+
+              ],
+            ),
+            Text('موقع الاستلام من الشركة:'),
+            Text('الرياض منطقة الشباب قطعة 15 ميني 36 الدور 2',
+                style: TextStyle(
+                    color: Colors.blue)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class TranslationLanguages extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      child: Card(color: Colors.white,
+
+        elevation: 0,
+        child: Padding(
+          padding: EdgeInsets.all(12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('اللغة المراد ترجمتها',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text('العربية'),
+              Text('اللغات المراد الترجمة إليها:'),
+              Text('الفرنسية (5 دينار / 100 كلمة)',
+                  style: TextStyle(color: Colors.blue)),
+              Text('الإنجليزية (5 دينار / 100 كلمة)',
+                  style: TextStyle(color: Colors.blue)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class NotesSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Card(color: Colors.white,
+      elevation: 0,
+      child: Padding(
+        padding: EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('الملاحظات',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('هذا النص هو نص بديل يمكن أن يستبدل بنص آخر في نفس المساحة'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AttachmentsSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        AttachmentIcon(Icons.description, 'Docs', Colors.blue),
+        AttachmentIcon(Icons.table_chart, 'XLS', Colors.green),
+        AttachmentIcon(Icons.picture_as_pdf, 'PDF', Colors.red),
+      ],
+    );
+  }
+}
+
+class AttachmentIcon extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  AttachmentIcon(this.icon, this.label, this.color);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Icon(icon, size: 40, color: color),
+        Text(label),
+      ],
+    );
+  }
+}
+
+class CancelOrderButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red,
+          padding: EdgeInsets.symmetric(vertical: 16.0),
+        ),
+        onPressed: () {},
+        child: Text('إلغاء الطلب',
+            style: TextStyle(color: Colors.white, fontSize: 16)),
+      ),
+    );
+  }
+}
+
+
+class CancelOrder extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("الغاء الطلب "),
+        centerTitle: true,
+        leading: Image.asset("assets/images/img23.png")
+
+      ),
+      body: Column(
+        children: [
+          Center(child: Image.asset("assets/images/img24.png")),
+          SizedBox(height: 30,),
+          Directionality(
+            textDirection: TextDirection.rtl,
+              child: const Text("سبب الالغاء",style:TextStyle(fontWeight: FontWeight.bold,fontSize: 20))),
+          Directionality(
+            textDirection: TextDirection.rtl,
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextFormField(
+                decoration: InputDecoration(
+                  hintText: 'توضيح سبب الالغاء',
+                  hintStyle: TextStyle(
+                    color: Color(0xffB3B3B3)
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                ),
+                maxLines: 5,
+
+              ),
+            ),
+          ),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              OutlinedButton(
+                onPressed: () {
+                  // TODO: أضيفي هنا الحدث عند الضغط
+                },
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: Color(0xFFE50930), width: 1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                  minimumSize: Size(164, 5),
+                  foregroundColor: Colors.white,
+                ),
+                child: Text(
+                  'الغاء',
+                  style: TextStyle(
+                    color: Color(0xFFE50930),
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  // TODO: أضيفي هنا الأكشن المطلوب عند الضغط
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xff409EDC),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                  minimumSize: Size(164, 5),
+                ),
+                child: Text(
+                  'تراجع',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+              )
+
+            ],
+          ),
+
+        ],
       ),
     );
   }
