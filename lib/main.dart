@@ -22,32 +22,32 @@ void main() async {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: SettingsScreen(),
+        home: SplashScreen(),
       ),
     ),
   );
 }
 
-class AddAddressScreen extends StatefulWidget {
-  const AddAddressScreen({super.key});
 
+class AddAddressScreen extends StatefulWidget {
   @override
-  State<AddAddressScreen> createState() => _AddAddressScreenState();
+  _AddAddressScreenState createState() => _AddAddressScreenState();
 }
 
 class _AddAddressScreenState extends State<AddAddressScreen> {
   final LatLng _initialPosition = const LatLng(24.7136, 46.6753);
   LatLng _selectedPosition = const LatLng(24.7136, 46.6753);
-  TextEditingController _locationController =
-      TextEditingController(text: "الرياض");
+  TextEditingController _locationController = TextEditingController();
 
   Future<void> _getAddressFromLatLng(LatLng position) async {
     try {
+
       List<Placemark> placemarks =
-          await placemarkFromCoordinates(position.latitude, position.longitude);
+      await placemarkFromCoordinates(position.latitude, position.longitude);
 
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks.first;
+
 
         String address = place.locality ??
             place.subAdministrativeArea ??
@@ -62,9 +62,15 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
         debugPrint("الموقع: $address");
       } else {
         debugPrint("لم يتم العثور على عنوان");
+        setState(() {
+          _locationController.text = "موقع غير معروف";
+        });
       }
     } catch (e) {
       debugPrint("Error fetching address: $e");
+      setState(() {
+        _locationController.text = "موقع غير معروف";
+      });
     }
   }
 
@@ -98,7 +104,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
               children: [
                 TileLayer(
                   urlTemplate:
-                      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                   subdomains: ['a', 'b', 'c'],
                 ),
                 MarkerLayer(
@@ -107,11 +113,7 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                       point: _selectedPosition,
                       width: 50,
                       height: 50,
-                      child: const Icon(
-                        Icons.location_pin,
-                        color: Colors.red,
-                        size: 40,
-                      ),
+                      child: Image.asset("assets/images/img57.png"),
                     ),
                   ],
                 ),
@@ -159,23 +161,30 @@ class _AddAddressScreenState extends State<AddAddressScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Text(
-                        "الموقع: ${_selectedPosition.latitude}, ${_selectedPosition.longitude}",
-                        style: const TextStyle(
-                            fontSize: 14, color: Colors.black54),
+                      Row(
+                        children: [
+                          Image.asset("assets/images/img58.png"),
+                          Text(
+                            "الموقع: ${_locationController.text}",
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.black54),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 12),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
+                            backgroundColor: Color(0xff409EDC),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.push(context,MaterialPageRoute(builder:(context)=>ChatScreen()));
+                          },
                           child: const Text(
                             "إضافة",
                             style: TextStyle(color: Colors.white, fontSize: 16),
@@ -203,6 +212,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
 class HomePage extends StatefulWidget {
   @override
   State<HomePage> createState() => _HomePageState();
@@ -218,7 +228,6 @@ class _HomePageState extends State<HomePage> {
   ];
 
   int _selectedIndex = 0;
-
 
   final List<Widget> _pages = [
     HomeContent(),
@@ -274,7 +283,6 @@ class HomeContent extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: const Color(0xffFDFDFD),
-
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -320,7 +328,8 @@ class HomeContent extends StatelessWidget {
                             itemCount: images.length,
                             itemBuilder: (context, index) {
                               return Container(
-                                margin: const EdgeInsets.symmetric(horizontal: .5),
+                                margin:
+                                    const EdgeInsets.symmetric(horizontal: .5),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(15),
                                   image: DecorationImage(
@@ -361,17 +370,17 @@ class HomeContent extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  const CategoryCard(
+                   CategoryCard(
                     title: 'الترجمة',
                     description:
                         'نقدم أفضل خدمات الترجمة لأكثر من 10 لغات حول العالم',
-                    image: 'assets/images/img5.png',
+                    image: 'assets/images/img5.png', destinationPage: TranslationRequestPage(),
                   ),
                   const SizedBox(height: 10),
-                  const CategoryCard(
+                   CategoryCard(
                     title: 'الطباعة',
                     description: 'نقدم أفضل جودة للطباعة بأسعار تنافسية',
-                    image: 'assets/images/img6.png',
+                    image: 'assets/images/img6.png', destinationPage: PrinterRequestPage(),
                   ),
                 ],
               ),
@@ -387,11 +396,13 @@ class CategoryCard extends StatelessWidget {
   final String title;
   final String description;
   final String image;
+  final Widget destinationPage;
 
   const CategoryCard({
     required this.title,
     required this.description,
     required this.image,
+    required this.destinationPage,
   });
 
   @override
@@ -410,19 +421,21 @@ class CategoryCard extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xff409EDC),
-                        fontFamily: 'IBM_Plex_Sans_Arabic'),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xff409EDC),
+                      fontFamily: 'IBM_Plex_Sans_Arabic',
+                    ),
                   ),
                   const SizedBox(height: 5),
                   Text(
                     description,
                     style: const TextStyle(
-                        fontSize: 11,
-                        color: Colors.black,
-                        fontFamily: 'IBM_Plex_Sans_Arabic',
-                        fontWeight: FontWeight.w500),
+                      fontSize: 11,
+                      color: Colors.black,
+                      fontFamily: 'IBM_Plex_Sans_Arabic',
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   const SizedBox(height: 10),
                   SizedBox(
@@ -431,16 +444,18 @@ class CategoryCard extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    TranslationRequestPage()));
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => destinationPage,
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
-                          side: const BorderSide(color: Color(0xff409EDC), width: 1),
+                          side: const BorderSide(
+                              color: Color(0xff409EDC), width: 1),
                         ),
                       ),
                       child: const Text(
@@ -556,10 +571,11 @@ class _TranslationRequestPageState extends State<TranslationRequestPage> {
                 _buildMultiSelectDropdown('اللغات المراد الترجمة إليها'),
                 _buildRadioSelection(),
                 InkWell(
-                  onTap: (){
+                  onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const SavedAddress()),
+                      MaterialPageRoute(
+                          builder: (context) => const SavedAddress()),
                     );
                   },
                   child: Align(
@@ -857,7 +873,10 @@ class _TranslationRequestPageState extends State<TranslationRequestPage> {
         ),
         onPressed: () {
 
-        },
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => OrderDetailsPage()),
+          ); },
         child: const Text('إرسال الطلب',
             style: TextStyle(color: Colors.white, fontSize: 16)),
       ),
@@ -883,7 +902,7 @@ class UploadButton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text(
-            "الرجاء إضافة المرفقات المراد ترجمتها",
+            "الرجاء إضافة المرفقات المراد طباعتها",
             style: TextStyle(fontSize: 14, color: Color(0xffB3B3B3)),
           ),
           IconButton(
@@ -895,6 +914,7 @@ class UploadButton extends StatelessWidget {
     );
   }
 }
+
 class DeliveryOptions extends StatefulWidget {
   @override
   _DeliveryOptionsState createState() => _DeliveryOptionsState();
@@ -930,7 +950,7 @@ class _DeliveryOptionsState extends State<DeliveryOptions> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content:
-            Text("إذن الموقع مرفوض نهائيًا، قم بتفعيله من الإعدادات!")),
+                Text("إذن الموقع مرفوض نهائيًا، قم بتفعيله من الإعدادات!")),
       );
       return;
     }
@@ -940,8 +960,8 @@ class _DeliveryOptionsState extends State<DeliveryOptions> {
         desiredAccuracy: LocationAccuracy.best,
       );
 
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-          position.latitude, position.longitude);
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
       String address =
           "${placemarks[0].street}, ${placemarks[0].locality}, ${placemarks[0].country}";
 
@@ -1021,7 +1041,11 @@ class _DeliveryOptionsState extends State<DeliveryOptions> {
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('المنزل',style:TextStyle(color:Color(0xff409EDC),fontSize: 14,fontWeight: FontWeight.bold)),
+                  const Text('المنزل',
+                      style: TextStyle(
+                          color: Color(0xff409EDC),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold)),
                   if (selectedOption == 'المنزل' && selectedAddress != null ||
                       (selectedAddress != null && selectedOption == null))
                     Padding(
@@ -1072,7 +1096,11 @@ class _DeliveryOptionsState extends State<DeliveryOptions> {
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('العمل',style:TextStyle(color:Color(0xff409EDC),fontSize: 14,fontWeight: FontWeight.bold)),
+                  const Text('العمل',
+                      style: TextStyle(
+                          color: Color(0xff409EDC),
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold)),
                   if (selectedOption == 'العمل' && selectedAddress != null ||
                       (selectedAddress != null && selectedOption == null))
                     Padding(
@@ -1113,7 +1141,6 @@ class _DeliveryOptionsState extends State<DeliveryOptions> {
           ),
         ],
         const SizedBox(height: 10),
-
       ],
     );
   }
@@ -2317,7 +2344,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
             leading: Icon(Icons.arrow_back_ios_new),
             backgroundColor: const Color(0xffFAFAFA),
             title: const Text('طلباتي', style: TextStyle(color: Colors.black)),
-
             elevation: 0,
             actions: [
               Padding(
@@ -2326,13 +2352,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
               )
             ],
           ),
-
           body: Column(
             children: [
               Container(
                 width: 360,
                 height: 56,
-                margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
+                margin:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF2F2F2),
                   borderRadius: BorderRadius.circular(16),
@@ -2528,11 +2554,10 @@ class OrderItem extends StatelessWidget {
                     onPressed: () {},
                     child: Row(
                       children: [
-
                         Image.asset("assets/images/img17.png"),
                         const SizedBox(width: 5),
-                        const Text('عرض الطلب', style: TextStyle(color: Colors.blue)),
-
+                        const Text('عرض الطلب',
+                            style: TextStyle(color: Colors.blue)),
                       ],
                     ),
                   ),
@@ -2926,14 +2951,13 @@ class _TranslationRequestPage2State extends State<TranslationRequestPage2> {
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xff409EDC),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => OrderDetailsPage()
-            ),
+            MaterialPageRoute(builder: (context) => OrderDetailsPage()),
           );
         },
         child: const Text('إرسال الطلب',
@@ -3006,41 +3030,44 @@ class OrderDetailsPage2 extends StatelessWidget {
               const SizedBox(height: 16.0),
               AttachmentsSection(),
               const SizedBox(height: 16.0),
-         Card(
-          color: Colors.white,
-          elevation: 0,
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('قيمه الطلب',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                const Divider(),
-                const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  Text("قيمه الخدمات", style: TextStyle()),
-                  Text("70"),
-                ]),
-                const Divider(),
-                const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  Text("الضريبه", style: TextStyle()),
-                  Text("15"),
-                ]),
-                const Divider(),
-                const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                  Text("الاجمالي",
-                      style:
-                      TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  Text("85"),
-                ]),
-
-
-              ],
-            ),
-          ),
-        )
-              ,
-
+              Card(
+                color: Colors.white,
+                elevation: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('قيمه الطلب',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                      const Divider(),
+                      const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("قيمه الخدمات", style: TextStyle()),
+                            Text("70"),
+                          ]),
+                      const Divider(),
+                      const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("الضريبه", style: TextStyle()),
+                            Text("15"),
+                          ]),
+                      const Divider(),
+                      const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("الاجمالي",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 14)),
+                            Text("85"),
+                          ]),
+                    ],
+                  ),
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Positioned(
@@ -3067,7 +3094,7 @@ class OrderDetailsPage2 extends StatelessWidget {
                     top: 1194,
                     left: 16,
                     child: InkWell(
-                      onTap: (){
+                      onTap: () {
                         Navigator.pop(context);
                       },
                       child: Container(
@@ -3093,7 +3120,6 @@ class OrderDetailsPage2 extends StatelessWidget {
     );
   }
 }
-
 
 class OrderDetailsPage3 extends StatelessWidget {
   @override
@@ -3131,32 +3157,35 @@ class OrderDetailsPage3 extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text('قيمه الطلب',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
                       const Divider(),
-                      const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                        Text("قيمه الخدمات", style: TextStyle()),
-                        Text("70"),
-                      ]),
+                      const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("قيمه الخدمات", style: TextStyle()),
+                            Text("70"),
+                          ]),
                       const Divider(),
-                      const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                        Text("الضريبه", style: TextStyle()),
-                        Text("15"),
-                      ]),
+                      const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("الضريبه", style: TextStyle()),
+                            Text("15"),
+                          ]),
                       const Divider(),
-                      const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                        Text("الاجمالي",
-                            style:
-                            TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                        Text("85"),
-                      ]),
-
-
+                      const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("الاجمالي",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 14)),
+                            Text("85"),
+                          ]),
                     ],
                   ),
                 ),
-              )
-              ,
-
+              ),
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Positioned(
@@ -3177,7 +3206,6 @@ class OrderDetailsPage3 extends StatelessWidget {
                       ),
                     )),
               ),
-
             ],
           ),
         ),
@@ -3247,9 +3275,11 @@ class OrderInfo extends StatelessWidget {
                   ],
                 ),
                 InkWell(
-                  onTap: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>AddAddressScreen()));
-
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => ChatScreen()));
                   },
                   child: CircleAvatar(
                       backgroundColor: const Color(0xff409EDC),
@@ -3300,11 +3330,9 @@ class DeliveryInfo extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('الإستلام',
-                    style:
-                        TextStyle(fontSize: 13,color:Color(0xffB3B3B3))),
+                    style: TextStyle(fontSize: 13, color: Color(0xffB3B3B3))),
                 Text('استلام من الشركه',
-                    style:
-                        TextStyle(fontSize: 12,color: Color(0xff409EDC))),
+                    style: TextStyle(fontSize: 12, color: Color(0xff409EDC))),
               ],
             ),
             Text('موقع الاستلام من الشركة:'),
@@ -3331,15 +3359,17 @@ class TranslationLanguages extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('اللغة المراد ترجمتها',
-              style:
-              TextStyle(fontSize: 13,color:Color(0xffB3B3B3))),
-              Text('العربية',style: TextStyle(color:Color(0xff409EDC)),),
-              Text('اللغات المراد الترجمة إليها:', style:
-                  TextStyle(fontSize: 13,color:Color(0xffB3B3B3))),
+                  style: TextStyle(fontSize: 13, color: Color(0xffB3B3B3))),
+              Text(
+                'العربية',
+                style: TextStyle(color: Color(0xff409EDC)),
+              ),
+              Text('اللغات المراد الترجمة إليها:',
+                  style: TextStyle(fontSize: 13, color: Color(0xffB3B3B3))),
               Text('الفرنسية (5 دينار / 100 كلمة)',
-                  style: TextStyle(color:Color(0xff409EDC))),
+                  style: TextStyle(color: Color(0xff409EDC))),
               Text('الإنجليزية (5 دينار / 100 كلمة)',
-                  style: TextStyle(color:Color(0xff409EDC))),
+                  style: TextStyle(color: Color(0xff409EDC))),
             ],
           ),
         ),
@@ -3361,7 +3391,6 @@ class NotesSection extends StatelessWidget {
           children: [
             Text('الملاحظات',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-
             Text('هذا النص هو نص بديل يمكن أن يستبدل بنص آخر في نفس المساحة'),
           ],
         ),
@@ -3383,20 +3412,18 @@ class AttachmentsSection extends StatelessWidget {
           children: [
             const Text('المرفقات',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-             Image.asset("assets/images/img10.png"),
-             Image.asset("assets/images/img11.png"),
-             Image.asset("assets/images/img12.png"),
-          ],
-        )
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Image.asset("assets/images/img10.png"),
+                Image.asset("assets/images/img11.png"),
+                Image.asset("assets/images/img12.png"),
+              ],
+            )
           ],
         ),
       ),
     );
-
   }
 }
 
@@ -3423,17 +3450,14 @@ class CancelOrderButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      child:   OutlinedButton(
+      child: OutlinedButton(
         onPressed: () {
           Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => CancelOrder()
-            ),
+            MaterialPageRoute(builder: (context) => CancelOrder()),
           );
         },
         style: OutlinedButton.styleFrom(
-
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -3458,12 +3482,11 @@ class CancelOrder extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: const Text("الغاء الطلب ",style:TextStyle(
-            fontWeight: FontWeight.bold,fontSize: 17
-          )),
+          title: const Text("الغاء الطلب ",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
           centerTitle: true,
           leading: InkWell(
-              onTap: (){
+              onTap: () {
                 Navigator.pop(context);
               },
               child: Image.asset("assets/images/img23.png"))),
@@ -3480,7 +3503,8 @@ class CancelOrder extends StatelessWidget {
                 child: Align(
                   alignment: Alignment.topRight,
                   child: Text("سبب الالغاء",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                 ),
               )),
           Directionality(
@@ -3492,9 +3516,8 @@ class CancelOrder extends StatelessWidget {
                   hintText: 'توضيح سبب الالغاء',
                   hintStyle: const TextStyle(color: Color(0xffB3B3B3)),
                   border: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color(0xffF2F2F2),width: 1),
+                    borderSide: BorderSide(color: Color(0xffF2F2F2), width: 1),
                     borderRadius: BorderRadius.circular(8),
-
                   ),
                   contentPadding:
                       const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
@@ -3515,7 +3538,8 @@ class CancelOrder extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                   minimumSize: const Size(164, 5),
                   foregroundColor: Colors.white,
                 ),
@@ -3530,14 +3554,15 @@ class CancelOrder extends StatelessWidget {
               ),
               ElevatedButton(
                 onPressed: () {
-Navigator.pop(context);
+                  Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xff409EDC),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
                   minimumSize: const Size(164, 5),
                 ),
                 child: const Text(
@@ -3556,15 +3581,6 @@ Navigator.pop(context);
   }
 }
 
-class ChatApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: ChatScreen(),
-    );
-  }
-}
 
 class ChatScreen extends StatelessWidget {
   @override
@@ -3588,7 +3604,6 @@ class ChatScreen extends StatelessWidget {
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
-
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -3601,7 +3616,6 @@ class ChatScreen extends StatelessWidget {
                           ),
                         ),
                       ),
-
                       Expanded(
                         child: _buildMessage(
                           'تم ارسال طلبك رقم #1235 وجاري مراجعته من قبل الإدارة',
@@ -3711,40 +3725,29 @@ class SettingsScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 24),
-
-
                 buildSection([
                   buildSettingItem(context, "الملف الشخصي", Icons.person,
-                      "assets/images/img26.png",EditProfileScreen()),
+                      "assets/images/img26.png", EditProfileScreen()),
                   buildSettingItem(context, "معلوماتي", Icons.info,
-                      "assets/images/img27.png",EditProfileScreen()),
+                      "assets/images/img27.png", EditProfileScreen()),
                 ]),
-
                 const SizedBox(height: 12),
-
-
                 buildSection([
                   buildSettingItem(context, "إعدادات عامة", Icons.settings,
-                      "assets/images/img28.png",GeneralSettingsScreen()),
+                      "assets/images/img28.png", GeneralSettingsScreen()),
                   buildSettingItem(context, "تواصل معنا", Icons.phone,
-                      "assets/images/img29.png",ContactUsScreen()),
+                      "assets/images/img29.png", ContactUsScreen()),
                 ]),
-
                 const SizedBox(height: 12),
-
-
                 buildSection([
                   buildSettingItem(context, "سياسة الاستخدام", Icons.security,
-                      "assets/images/img30.png",UsagePolicyScreen()),
+                      "assets/images/img30.png", UsagePolicyScreen()),
                   buildSettingItem(context, "الشروط والأحكام", Icons.rule,
-                      "assets/images/img31.png",TermsAndConditionsScreen()),
+                      "assets/images/img31.png", TermsAndConditionsScreen()),
                   buildSettingItem(context, "سياسة الخصوصية", Icons.privacy_tip,
-                      "assets/images/img32.png",PrivacyPolicyScreen()),
+                      "assets/images/img32.png", PrivacyPolicyScreen()),
                 ]),
-
                 const SizedBox(height: 16),
-
-
                 Container(
                   width: double.infinity,
                   padding:
@@ -3757,18 +3760,17 @@ class SettingsScreen extends StatelessWidget {
                     children: [
                       Image.asset("assets/images/img33.png"),
                       const SizedBox(width: 8),
-                      const Text("تسجيل الخروج", style: TextStyle(color: Color(0xffE50930))),
+                      const Text("تسجيل الخروج",
+                          style: TextStyle(color: Color(0xffE50930))),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
-
-                 const Center(
-                   child: Text("تابعنا عبر",
-                        style: TextStyle(fontWeight: FontWeight.bold,fontSize: 20)),
-                 ),
+                const Center(
+                  child: Text("تابعنا عبر",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                ),
                 const SizedBox(height: 8),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -3789,14 +3791,13 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-
   Widget buildSettingItem(
-      BuildContext context,
-      String title,
-      IconData icon,
-      String imagePath,
-      Widget targetScreen, // ✅ دي الإضافة
-      ) {
+    BuildContext context,
+    String title,
+    IconData icon,
+    String imagePath,
+    Widget targetScreen,
+  ) {
     return ListTile(
       tileColor: Colors.white,
       leading: Image.asset(imagePath, width: 24, height: 24),
@@ -3810,8 +3811,6 @@ class SettingsScreen extends StatelessWidget {
       },
     );
   }
-
-
 
   Widget buildSection(List<Widget> items) {
     return Container(
@@ -3848,34 +3847,39 @@ class EditProfileScreen extends StatelessWidget {
           backgroundColor: Colors.white,
           leading: const Icon(Icons.arrow_back_ios_new),
           title: const Text("الملف الشخصي", textAlign: TextAlign.right),
-
         ),
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 16),
             child: Column(
               children: [
-                Image.asset("assets/images/img1.png", height: 69, width: 187,),
-
+                Image.asset(
+                  "assets/images/img1.png",
+                  height: 69,
+                  width: 187,
+                ),
                 const SizedBox(height: 24),
                 const Align(
                     alignment: Alignment.topRight,
-                    child: Text("الاسم الاول",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 15),)),
+                    child: Text(
+                      "الاسم الاول",
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    )),
                 buildTextField("محمد", firstNameController),
                 const SizedBox(height: 16),
                 const Align(
                     alignment: Alignment.topRight,
-                    child: Text("اسم العائله",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 15))),
+                    child: Text("اسم العائله",
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 15))),
                 buildTextField("اشرف", lastNameController),
                 const SizedBox(height: 24),
                 ElevatedButton(
-                  onPressed: () {
-
-                  },
+                  onPressed: () {},
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(343, 10),
                     backgroundColor: const Color(0xF0409EDC),
-
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 10),
                     shape: RoundedRectangleBorder(
@@ -3892,7 +3896,6 @@ class EditProfileScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-
               ],
             ),
           ),
@@ -3926,7 +3929,6 @@ class EditProfileScreen extends StatelessWidget {
   }
 }
 
-
 class GeneralSettingsScreen extends StatefulWidget {
   const GeneralSettingsScreen({super.key});
 
@@ -3955,7 +3957,6 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-
                 const Row(
                   children: [
                     Icon(Icons.arrow_back_ios, size: 20),
@@ -3969,20 +3970,14 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 24),
-
-
                 Center(
                   child: Image.asset(
                     "assets/images/img1.png",
                     width: 120,
                   ),
                 ),
-
                 const SizedBox(height: 32),
-
-
                 Container(
                   decoration: BoxDecoration(
                     color: const Color(0xFFFAFAFA),
@@ -3990,22 +3985,33 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
                   ),
                   child: Column(
                     children: [
-                      _buildSettingsItem("تغيير رقم الجوال", "assets/images/img40.png"),
+                      _buildSettingsItem(
+                          "تغيير رقم الجوال", "assets/images/img40.png",(){
+                            Navigator.push(context,MaterialPageRoute(builder: (context)=>OtpScreen(contactInfo: '', contactType: '',)));
+                      }),
+                      _buildSettingsItem(
+                          "تغيير البريد الإلكتروني", "assets/images/img41.png",(){
+                        Navigator.push(context,MaterialPageRoute(builder: (context)=>OtpScreen(contactInfo: '', contactType: '',)));
 
-                      _buildSettingsItem("تغيير البريد الإلكتروني", "assets/images/img41.png"),
+                      }),
+                      _buildSettingsItem(
+                          "تغيير لغة التطبيق", "assets/images/img42.png",(){
+                        Navigator.push(context,MaterialPageRoute(builder: (context)=>LanguageScreen()));
 
-                      _buildSettingsItem("تغيير لغة التطبيق", "assets/images/img42.png"),
-
+                      }),
                       _buildSwitchItem("تفعيل الإشعارات"),
                     ],
                   ),
                 ),
-
-
-
                 TextButton(
                   onPressed: () {
-Navigator.push(context,MaterialPageRoute(builder: (context)=>OtpScreen(contactInfo: '', contactType: '',)));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => OtpScreen(
+                                  contactInfo: '',
+                                  contactType: '',
+                                )));
                   },
                   child: const Text(
                     "حذف الحساب",
@@ -4024,22 +4030,25 @@ Navigator.push(context,MaterialPageRoute(builder: (context)=>OtpScreen(contactIn
     );
   }
 
-  Widget _buildSettingsItem(String title, String icon) {
+  Widget _buildSettingsItem(String title, String icon, VoidCallback onTap) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      child: Row(
-        children: [
-          Image.asset(icon, width: 24, height: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(fontSize: 14),
-              textAlign: TextAlign.right,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Row(
+          children: [
+            Image.asset(icon, width: 24, height: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(fontSize: 14),
+                textAlign: TextAlign.right,
+              ),
             ),
-          ),
-          const Icon(Icons.arrow_forward_ios, size: 16),
-        ],
+            const Icon(Icons.arrow_forward_ios, size: 16),
+          ],
+        ),
       ),
     );
   }
@@ -4052,10 +4061,16 @@ Navigator.push(context,MaterialPageRoute(builder: (context)=>OtpScreen(contactIn
           Image.asset("assets/images/img43.png", width: 24, height: 24),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(fontSize: 14),
-              textAlign: TextAlign.right,
+            child: InkWell(
+              onTap:(){
+                Navigator.push(context,MaterialPageRoute(builder: (context)=>NotificationsScreen()));
+
+              },
+              child: Text(
+                title,
+                style: const TextStyle(fontSize: 14),
+                textAlign: TextAlign.right,
+              ),
             ),
           ),
           GestureDetector(
@@ -4081,7 +4096,7 @@ class LanguageScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: const Icon(Icons.close, color: Colors.red),
+        leading:  Image.asset("assets/images/img23.png"),
         title: const Text('لغة التطبيق'),
       ),
       body: Padding(
@@ -4133,7 +4148,6 @@ class LanguageScreen extends StatelessWidget {
                 ),
               ),
             )
-
           ],
         ),
       ),
@@ -4145,11 +4159,12 @@ class LanguageScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: selected ? const Color(0xff28C1ED).withOpacity(.2): const Color(0xffF2F2F2),
-
+        color: selected
+            ? const Color(0xff28C1ED).withOpacity(.2)
+            : const Color(0xffF2F2F2),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: selected ? const Color(0xff409EDC): const Color(0xffF2F2F2),
+          color: selected ? const Color(0xff409EDC) : const Color(0xffF2F2F2),
           width: 2,
         ),
       ),
@@ -4172,8 +4187,9 @@ class ContactUsScreen extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
           backgroundColor: Colors.white,
-        appBar: AppBar(backgroundColor: Colors.white,
           title: const Text('تواصل معنا'),
           leading: const Icon(Icons.arrow_back_ios),
         ),
@@ -4184,11 +4200,19 @@ class ContactUsScreen extends StatelessWidget {
             children: [
               Center(child: Image.asset('assets/images/img1.png', height: 80)),
               const SizedBox(height: 16),
-              const Center(child: Text('تواصل معنا',style:TextStyle(fontWeight: FontWeight.bold,fontSize: 16))),
+              const Center(
+                  child: Text('تواصل معنا',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 16))),
               const SizedBox(height: 8),
-              const Center(child: Text('من خلال :',style:TextStyle(fontWeight: FontWeight.bold,fontSize: 16,color: Color(0xff676767)))),
+              const Center(
+                  child: Text('من خلال :',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Color(0xff676767)))),
               const SizedBox(height: 8),
-               Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Image.asset("assets/images/img55.png"),
@@ -4201,7 +4225,10 @@ class ContactUsScreen extends StatelessWidget {
               const SizedBox(height: 8),
               const Center(child: Text('أو أرسل لنا رسالة :')),
               const SizedBox(height: 16),
-              const Text("الاسم",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 15),),
+              const Text(
+                "الاسم",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
               Container(
                 width: 343.24,
                 height: 48,
@@ -4212,7 +4239,6 @@ class ContactUsScreen extends StatelessWidget {
                 ),
                 child: const TextField(
                   decoration: InputDecoration(
-
                     border: InputBorder.none,
                     hintText: 'ادخل الاسم فضلا',
                   ),
@@ -4220,8 +4246,10 @@ class ContactUsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              const Text("عنوان الرساله",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 15),),
-
+              const Text(
+                "عنوان الرساله",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
               Container(
                 width: 343.24,
                 height: 48,
@@ -4232,7 +4260,6 @@ class ContactUsScreen extends StatelessWidget {
                 ),
                 child: const TextField(
                   decoration: InputDecoration(
-
                     border: InputBorder.none,
                     hintText: 'الرجاء توضيح عنوان رسالتك',
                   ),
@@ -4240,7 +4267,10 @@ class ContactUsScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              const Text("نص الرساله",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 15),),
+              const Text(
+                "نص الرساله",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
               Container(
                 width: 343.24,
                 height: 48,
@@ -4253,7 +4283,6 @@ class ContactUsScreen extends StatelessWidget {
                   decoration: InputDecoration(
                     hintText: 'ادخل نص الرساله',
                     border: InputBorder.none,
-
                   ),
                   style: TextStyle(fontSize: 14),
                 ),
@@ -4272,11 +4301,10 @@ class ContactUsScreen extends StatelessWidget {
                   ),
                   child: const Text(
                     'إرسال',
-                    style: TextStyle(fontSize: 16,color: Colors.white),
+                    style: TextStyle(fontSize: 16, color: Colors.white),
                   ),
                 ),
               ),
-
             ],
           ),
         ),
@@ -4284,21 +4312,24 @@ class ContactUsScreen extends StatelessWidget {
     );
   }
 }
+
 class DeleteAccountScreen extends StatelessWidget {
   const DeleteAccountScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Directionality(
-        textDirection: TextDirection.rtl,
+      textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.white,
-         actions: [Padding(
-           padding: const EdgeInsets.all(8.0),
-           child: Image.asset("assets/images/img23.png"),
-         )],
+          actions: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Image.asset("assets/images/img23.png"),
+            )
+          ],
           title: const Text('حذف الحساب'),
         ),
         body: Padding(
@@ -4344,7 +4375,6 @@ class DeleteAccountScreen extends StatelessWidget {
                   ),
                 ),
               ),
-
               const Spacer(),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -4359,14 +4389,12 @@ class DeleteAccountScreen extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 12),
                       ),
                       child: const Text(
                         'تراجع',
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white
-                        ),
+                        style: TextStyle(fontSize: 16, color: Colors.white),
                       ),
                     ),
                   ),
@@ -4377,11 +4405,13 @@ class DeleteAccountScreen extends StatelessWidget {
                     child: OutlinedButton(
                       onPressed: () {},
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFE50930), width: 1),
+                        side: const BorderSide(
+                            color: Color(0xFFE50930), width: 1),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 12),
                       ),
                       child: const Text(
                         'حذف',
@@ -4392,11 +4422,8 @@ class DeleteAccountScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-
-
                 ],
               ),
-
             ],
           ),
         ),
@@ -4404,7 +4431,6 @@ class DeleteAccountScreen extends StatelessWidget {
     );
   }
 }
-
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
@@ -4428,7 +4454,6 @@ class PrivacyPolicyScreen extends StatelessWidget {
               const SizedBox(height: 16),
               Container(
                 width: 346,
-
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFAFAFA),
@@ -4437,20 +4462,23 @@ class PrivacyPolicyScreen extends StatelessWidget {
                 child: const SingleChildScrollView(
                   child: Text(
                     'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة ',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF1D1D1D),fontWeight: FontWeight.bold),
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة ',
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF1D1D1D),
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -4492,20 +4520,23 @@ class TermsAndConditionsScreen extends StatelessWidget {
                 child: const SingleChildScrollView(
                   child: Text(
                     'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة ',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF1D1D1D), fontWeight: FontWeight.bold),
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة ',
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF1D1D1D),
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -4547,20 +4578,23 @@ class UsagePolicyScreen extends StatelessWidget {
                 child: const SingleChildScrollView(
                   child: Text(
                     'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
-                        'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة ',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF1D1D1D), fontWeight: FontWeight.bold),
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة '
+                    'هذا النص هو نص بديل يمكن ان يستبدل بنص اخر في نفس المساحة ',
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF1D1D1D),
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -4583,10 +4617,12 @@ class LogOut extends StatelessWidget {
         backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.white,
-          actions: [Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Image.asset("assets/images/img23.png"),
-          )],
+          actions: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Image.asset("assets/images/img23.png"),
+            )
+          ],
           title: const Text('تسجيل الخروج'),
         ),
         body: Padding(
@@ -4600,7 +4636,6 @@ class LogOut extends StatelessWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -4614,14 +4649,12 @@ class LogOut extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 12),
                       ),
                       child: const Text(
                         'تراجع',
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white
-                        ),
+                        style: TextStyle(fontSize: 16, color: Colors.white),
                       ),
                     ),
                   ),
@@ -4632,11 +4665,13 @@ class LogOut extends StatelessWidget {
                     child: OutlinedButton(
                       onPressed: () {},
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFE50930), width: 1),
+                        side: const BorderSide(
+                            color: Color(0xFFE50930), width: 1),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 12),
                       ),
                       child: const Text(
                         'حذف',
@@ -4647,11 +4682,8 @@ class LogOut extends StatelessWidget {
                       ),
                     ),
                   ),
-
-
                 ],
               ),
-
             ],
           ),
         ),
@@ -4659,8 +4691,6 @@ class LogOut extends StatelessWidget {
     );
   }
 }
-
-
 
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({super.key});
@@ -4681,7 +4711,6 @@ class NotificationsScreen extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-
           leading: const Icon(Icons.arrow_back_ios, color: Colors.black),
         ),
         body: ListView.separated(
@@ -4730,7 +4759,6 @@ class NotificationsScreen extends StatelessWidget {
                               color: Color(0xFFB3B3B3),
                             ),
                             SizedBox(width: 4),
-
                           ],
                         )
                       ],
@@ -4738,8 +4766,6 @@ class NotificationsScreen extends StatelessWidget {
                   ),
                   SizedBox(width: 8),
                   Icon(Icons.delete_outline, color: Color(0xFFE50930)),
-
-
                 ],
               ),
             );
@@ -4749,9 +4775,6 @@ class NotificationsScreen extends StatelessWidget {
     );
   }
 }
-
-
-
 
 class SavedAddress extends StatefulWidget {
   const SavedAddress({Key? key}) : super(key: key);
@@ -4774,7 +4797,6 @@ class _SavedAddressState extends State<SavedAddress> {
     bool serviceEnabled;
     LocationPermission permission;
 
-
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       setState(() {
@@ -4782,7 +4804,6 @@ class _SavedAddressState extends State<SavedAddress> {
       });
       return;
     }
-
 
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
@@ -4806,10 +4827,27 @@ class _SavedAddressState extends State<SavedAddress> {
       desiredAccuracy: LocationAccuracy.high,
     );
 
-    setState(() {
-      currentLocation =
-      '${position.latitude}, ${position.longitude}';
-    });
+
+    getAddressFromLatLng(position.latitude, position.longitude);
+  }
+
+  Future<void> getAddressFromLatLng(double lat, double lng) async {
+    try {
+      List<Placemark> placemarks = await placemarkFromCoordinates(lat, lng);
+
+      if (placemarks.isNotEmpty) {
+        final place = placemarks.first;
+        setState(() {
+          currentLocation =
+          "${place.street}, ${place.subLocality}, ${place.locality}, ${place.country}";
+        });
+      }
+    } catch (e) {
+      print("Error getting location: $e");
+      setState(() {
+        currentLocation = "تعذر تحديد الموقع";
+      });
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -4833,7 +4871,9 @@ class _SavedAddressState extends State<SavedAddress> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Center(child: Image.asset('assets/images/img52.png', height: 100)),
+                    Center(
+                        child: Image.asset('assets/images/img52.png',
+                            height: 100)),
                     const SizedBox(height: 20),
                     const Center(
                       child: Text(
@@ -4845,7 +4885,7 @@ class _SavedAddressState extends State<SavedAddress> {
                     _buildAddressCard("المنزل"),
                     _buildAddressCard("العمل"),
                     const SizedBox(height: 10),
-                      ],
+                  ],
                 ),
               ),
             ),
@@ -4854,9 +4894,8 @@ class _SavedAddressState extends State<SavedAddress> {
               child: Column(
                 children: [
                   if (selectedAddress != null) _buildDeliveryButton(),
-
                   Padding(
-                    padding: const EdgeInsets.only(top:8.0),
+                    padding: const EdgeInsets.only(top: 8.0),
                     child: _buildAddAddressButton(),
                   ),
                 ],
@@ -4945,7 +4984,7 @@ class _SavedAddressState extends State<SavedAddress> {
       height: 50,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-backgroundColor: Colors.white,
+          backgroundColor: Colors.white,
           foregroundColor: const Color(0xff409EDC),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -4953,7 +4992,6 @@ backgroundColor: Colors.white,
           ),
         ),
         onPressed: () {
-
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('تم اختيار التوصيل إلى $selectedAddress')),
           );
@@ -4973,14 +5011,14 @@ backgroundColor: Colors.white,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xff409EDC),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         onPressed: () {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) =>
-                      const AddAddressScreen()));
+                  builder: (context) =>  AddAddressScreen()));
         },
         child: const Text('اضافه عنوان جديد',
             style: TextStyle(color: Colors.white, fontSize: 16)),
@@ -4989,24 +5027,21 @@ backgroundColor: Colors.white,
   }
 }
 
-
 class SaveOrder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-          backgroundColor: Colors.white,
+        backgroundColor: Colors.white,
         appBar: AppBar(
           backgroundColor: Colors.white,
-            title: const Text("تأكيد الطلب",style:TextStyle(
-                fontWeight: FontWeight.bold,fontSize: 17
-            )),
-            centerTitle: true,
-          ),
+          title: const Text("تأكيد الطلب",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+          centerTitle: true,
+        ),
         body: Column(
           children: [
-
             const SizedBox(
               height: 30,
             ),
@@ -5017,12 +5052,13 @@ class SaveOrder extends StatelessWidget {
                   child: Align(
                     alignment: Alignment.topRight,
                     child: Text("كود الخصم",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 15)),
                   ),
                 )),
             Directionality(
               textDirection: TextDirection.rtl,
-              child: CustomTextField(hintText:"ادخل كود الخصم"),
+              child: CustomTextField(hintText: "ادخل كود الخصم"),
             ),
             Card(
               color: Colors.white,
@@ -5033,26 +5069,31 @@ class SaveOrder extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text('قيمه الطلب',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold)),
                     const Divider(),
-                    const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Text("قيمه الخدمات", style: TextStyle()),
-                      Text("70"),
-                    ]),
+                    const Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("قيمه الخدمات", style: TextStyle()),
+                          Text("70"),
+                        ]),
                     const Divider(),
-                    const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Text("الضريبه", style: TextStyle()),
-                      Text("15"),
-                    ]),
+                    const Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("الضريبه", style: TextStyle()),
+                          Text("15"),
+                        ]),
                     const Divider(),
-                    const Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Text("الاجمالي",
-                          style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                      Text("85"),
-                    ]),
-
-
+                    const Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text("الاجمالي",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 14)),
+                          Text("85"),
+                        ]),
                   ],
                 ),
               ),
@@ -5062,15 +5103,18 @@ class SaveOrder extends StatelessWidget {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>SuccessOrder()));
-
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => SuccessOrder()));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xff409EDC),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 12),
                     minimumSize: const Size(164, 5),
                   ),
                   child: const Text(
@@ -5082,15 +5126,14 @@ class SaveOrder extends StatelessWidget {
                   ),
                 ),
                 OutlinedButton(
-                  onPressed: () {
-
-                  },
+                  onPressed: () {},
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFF409EDC), width: 1),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 12),
                     minimumSize: const Size(164, 5),
                     foregroundColor: Colors.white,
                   ),
@@ -5103,7 +5146,6 @@ class SaveOrder extends StatelessWidget {
                     ),
                   ),
                 ),
-
               ],
             ),
           ],
@@ -5113,7 +5155,6 @@ class SaveOrder extends StatelessWidget {
   }
 }
 
-
 class SuccessOrder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -5121,32 +5162,32 @@ class SuccessOrder extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: Colors.white,
-
         body: Center(
           child: Column(
-
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-
-              Text("تم تسديد قيمة الطلب بنجاج",style:TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 15
-              )),
-              SizedBox(height: 60,),
+              Text("تم تسديد قيمة الطلب بنجاج",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              SizedBox(
+                height: 60,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=>OrderDetailsPage3()));
-
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => OrderDetailsPage3()));
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xff409EDC),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 12),
                       minimumSize: const Size(164, 5),
                     ),
                     child: const Text(
@@ -5158,15 +5199,15 @@ class SuccessOrder extends StatelessWidget {
                     ),
                   ),
                   OutlinedButton(
-                    onPressed: () {
-
-                    },
+                    onPressed: () {},
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFF409EDC), width: 1),
+                      side:
+                          const BorderSide(color: Color(0xFF409EDC), width: 1),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 12),
                       minimumSize: const Size(164, 5),
                       foregroundColor: Colors.white,
                     ),
@@ -5179,12 +5220,459 @@ class SuccessOrder extends StatelessWidget {
                       ),
                     ),
                   ),
-
                 ],
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+//right
+
+class OrderDetails {
+  final List<PlatformFile> files;
+  final String? printColor;
+  final String? bindingType;
+  final int pages;
+  final int copies;
+  final String? deliveryOption;
+  final String notes;
+
+  OrderDetails({
+    required this.files,
+    this.printColor,
+    this.bindingType,
+    required this.pages,
+    required this.copies,
+    this.deliveryOption,
+    required this.notes,
+  });
+}
+
+class PrinterRequestPage extends StatefulWidget {
+  PrinterRequestPage({super.key});
+
+  @override
+  _PrinterRequestPageState createState() => _PrinterRequestPageState();
+}
+
+class _PrinterRequestPageState extends State<PrinterRequestPage> {
+  final List<String> fileTypes = [
+    'assets/word.png',
+    'assets/excel.png',
+    'assets/pdf.png'
+  ];
+  List<PlatformFile> selectedFiles = [];
+  final List<String> availableLanguages = ['الوان', 'ابيض واسود'];
+  final List<String> availableLanguages2 = ['مجلد', '..'];
+
+  String? selectedLanguage;
+  String? selectedLanguage2;
+  String? selectedDelivery;
+
+  final TextEditingController _pagesController = TextEditingController();
+  final TextEditingController _copiesController = TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
+
+  void _addLanguage(String language) {
+    if (!availableLanguages.contains(language)) {
+      setState(() {
+        availableLanguages.add(language);
+      });
+    }
+  }
+
+  Future<void> pickFile() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles();
+      if (result != null && result.files.isNotEmpty) {
+        setState(() {
+          selectedFiles.add(result.files.first);
+        });
+      }
+    } catch (e) {
+      print("حدث خطأ أثناء اختيار الملف: $e");
+    }
+  }
+
+  Widget _buildSummaryCard() {
+    return Card(
+      color: Colors.white,
+      elevation: 0,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('البيانات المحددة',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const Divider(),
+            if (selectedLanguage != null)
+              _buildSummaryItem('لون الطباعة', selectedLanguage!),
+            if (selectedLanguage2 != null)
+              _buildSummaryItem('نوع التغليف', selectedLanguage2!),
+            if (_pagesController.text.isNotEmpty)
+              _buildSummaryItem('عدد الصفحات', _pagesController.text),
+            if (_copiesController.text.isNotEmpty)
+              _buildSummaryItem('عدد النسخ', _copiesController.text),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+  List<String> selectedLanguages = [];
+
+  Widget _buildSummaryItem(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title, style: const TextStyle(color: Color(0xffB3B3B3))),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: const Color(0xffF8F8F8),
+        appBar: AppBar(
+          leading: const Icon(Icons.arrow_back_ios),
+          title: const Text('طلب طباعه', style: TextStyle(color: Colors.black)),
+          backgroundColor: const Color(0xffF8F8F8),
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.black),
+        ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Image.asset('assets/images/img56.png', height: 100),
+                ),
+                const SizedBox(height: 16),
+                const Center(
+                  child: Text(
+                    'طلب طباعه جديد',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Center(
+                  child: Text(
+                    'الرجاء ارفاق الملفات المراد طباعتها',
+                    style: TextStyle(fontSize: 14, color: Color(0xffB3B3B3)),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'المرفقات المراد طباعتها',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                UploadButton(
+                  onPressed: () {
+                    pickFile();
+                  },
+                ),
+                const SizedBox(height: 8),
+                _buildSelectedFilesList(),
+                const SizedBox(height: 16),
+                _buildDropdown(
+                    'اختر لون الطباعه'
+                   ,),
+                const SizedBox(height: 16),
+                _buildDropdown(
+                  'اختر نوع  التغليف'
+                  ,),
+                const SizedBox(height: 16),
+                const Text('عدد الصفحات',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                TextField(
+                  controller: _pagesController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: 'عدد الصفحات المراد طباعتها',
+                    hintStyle: const TextStyle(
+                      color: Color(0xffB3B3B3),
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'IBM_Plex_Sans_Arabic',
+                      fontSize: 13,
+                    ),
+                    filled: true,
+                    fillColor: const Color(
+                        0xffF2F2F2
+                    ),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    contentPadding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  ),
+                  onChanged: (value) => setState(() {}),
+                ),
+                const SizedBox(height: 16),
+                const Text('عدد النسخ',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                TextField(
+                  controller: _copiesController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    hintText: 'عدد الصفحات المراد طباعتها',
+                    hintStyle: const TextStyle(
+                      color: Color(0xffB3B3B3),
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'IBM_Plex_Sans_Arabic',
+                      fontSize: 13,
+                    ),
+                    filled: true,
+                    fillColor: const Color(
+                        0xffF2F2F2
+                    ),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    contentPadding:
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                  ),
+                  onChanged: (value) => setState(() {}),
+                ),
+                const SizedBox(height: 16),
+                InkWell(
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const SavedAddress())),
+                  child: Align(
+                      alignment: Alignment.topLeft,
+                      child: Image.asset("assets/images/img51.png")),
+                ),
+                const SizedBox(height: 16),
+                _buildSummaryCard(),
+                const SizedBox(height: 16),
+                DeliveryOptions(),
+                const SizedBox(height: 16),
+                const Text(
+                  'الملاحظات',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                _buildTextField('ادخل الملاحظات الخاصة بك ان وجدت'),
+                const SizedBox(height: 16),
+                _buildSubmitButton(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+  Widget _buildTextField(String label) {
+    return Container(
+      width: 343,
+      height: 109,
+      padding: const EdgeInsets.fromLTRB(12, 20, 12, 20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF2F2F2),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            right: 5,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontFamily: 'IBM Plex Sans Arabic',
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+                height: 1.0,
+                letterSpacing: 0,
+                color: Color(0xFFB3B3B3),
+              ),
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.only(top: 5),
+            child: TextField(
+              maxLines: 3,
+              decoration: InputDecoration(
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRadioSelection() {
+    return Column(
+      children: [
+        RadioListTile<String>(
+          title: const Text('توصيل إلى العنوان'),
+          value: 'delivery',
+          groupValue: selectedDelivery,
+          onChanged: (value) => setState(() => selectedDelivery = value),
+        ),
+        RadioListTile<String>(
+          title: const Text('استلام من المحل'),
+          value: 'pickup',
+          groupValue: selectedDelivery,
+          onChanged: (value) => setState(() => selectedDelivery = value),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdown(String label) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        Container(
+          width: 343,
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF2F2F2),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              hint:
+              Text(selectedLanguage ?? 'اختر لون الطباعه '),
+              isExpanded: true,
+              icon: const Icon(Icons.keyboard_arrow_down),
+              items: availableLanguages
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  if (value != null) {
+                    selectedLanguage = value;
+                    selectedLanguages.remove(value);
+                    selectedLanguages.insert(0, value);
+                  }
+                });
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+
+  String getFileIcon(String extension) {
+    switch (extension.toLowerCase()) {
+      case 'pdf':
+        return 'assets/images/img10.png';
+      case 'doc':
+      case 'docx':
+        return 'assets/images/img12.png';
+      case 'xls':
+      case 'xlsx':
+        return 'assets/images/img11.png';
+      default:
+        return 'assets/file.png';
+    }
+  }
+
+  Widget _buildSelectedFilesList() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: selectedFiles.map((file) {
+          String extension = file.extension ?? "";
+          String iconPath = getFileIcon(extension);
+
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  OpenFile.open(file.path);
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Image.asset(iconPath, width: 60, height: 60),
+                ),
+              ),
+              Positioned(
+                top: -5,
+                left: -5,
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedFiles.remove(file);
+                    });
+                  },
+                  child: Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.red, width: 1.5),
+                    ),
+                    child: const Icon(Icons.close, size: 16, color: Colors.red),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  String _getFileIcon(String extension) {
+    switch (extension.toLowerCase()) {
+      case 'pdf':
+        return 'assets/images/img10.png';
+      case 'doc':
+      case 'docx':
+        return 'assets/images/img12.png';
+      case 'xls':
+      case 'xlsx':
+        return 'assets/images/img11.png';
+      default:
+        return 'assets/file.png';
+    }
+  }
+
+  Widget _buildSubmitButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context)=>SaveOrder()));
+        },
+        child: const Text('إرسال الطلب',
+            style: TextStyle(color: Colors.white, fontSize: 16)),
       ),
     );
   }
