@@ -3728,8 +3728,8 @@ class SettingsScreen extends StatelessWidget {
                 buildSection([
                   buildSettingItem(context, "الملف الشخصي", Icons.person,
                       "assets/images/img26.png", EditProfileScreen()),
-                  buildSettingItem(context, "معلوماتي", Icons.info,
-                      "assets/images/img27.png", EditProfileScreen()),
+                  buildSettingItem(context, "عناويني", Icons.info,
+                      "assets/images/img27.png", SavedAddress()),
                 ]),
                 const SizedBox(height: 12),
                 buildSection([
@@ -3756,13 +3756,18 @@ class SettingsScreen extends StatelessWidget {
                     color: Colors.red.shade100,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Row(
-                    children: [
-                      Image.asset("assets/images/img33.png"),
-                      const SizedBox(width: 8),
-                      const Text("تسجيل الخروج",
-                          style: TextStyle(color: Color(0xffE50930))),
-                    ],
+                  child: InkWell(
+                    onTap:(){
+                      Navigator.push(context,MaterialPageRoute(builder:(context)=>LogOut()));
+                    },
+                    child: Row(
+                      children: [
+                        Image.asset("assets/images/img33.png"),
+                        const SizedBox(width: 8),
+                        const Text("تسجيل الخروج",
+                            style: TextStyle(color: Color(0xffE50930))),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
@@ -3987,11 +3992,11 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
                     children: [
                       _buildSettingsItem(
                           "تغيير رقم الجوال", "assets/images/img40.png",(){
-                            Navigator.push(context,MaterialPageRoute(builder: (context)=>OtpScreen(contactInfo: '', contactType: '',)));
+                            Navigator.push(context,MaterialPageRoute(builder: (context)=>ChangePhoneScreen()));
                       }),
                       _buildSettingsItem(
                           "تغيير البريد الإلكتروني", "assets/images/img41.png",(){
-                        Navigator.push(context,MaterialPageRoute(builder: (context)=>OtpScreen(contactInfo: '', contactType: '',)));
+                        Navigator.push(context,MaterialPageRoute(builder: (context)=>ChangeEmailScreen()));
 
                       }),
                       _buildSettingsItem(
@@ -4008,10 +4013,7 @@ class _GeneralSettingsScreenState extends State<GeneralSettingsScreen> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => OtpScreen(
-                                  contactInfo: '',
-                                  contactType: '',
-                                )));
+                            builder: (context) => DeleteAccountScreen()));
                   },
                   child: const Text(
                     "حذف الحساب",
@@ -5692,4 +5694,367 @@ class _PrinterRequestPageState extends State<PrinterRequestPage> {
     );
   }
 }
+class ChangePhoneScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => LoginViewModel(),
+      child: Scaffold(
 
+        backgroundColor: Colors.white,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            double screenWidth = constraints.maxWidth;
+            double padding = screenWidth > 600 ? 48 : 24;
+            double imageWidth = screenWidth > 600 ? 250 : 204;
+            double buttonHeight = screenWidth > 600 ? 60 : 50;
+
+            return Stack(
+              children: [
+                SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: padding),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(height: screenWidth > 600 ? 70 : 50),
+
+                        Row(mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            const Text(
+                              "تغيير رمز الجوال ",
+                              style: TextStyle(
+                                color: Color(0xff1D1D1D),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 18,
+                                fontFamily: 'IBM_Plex_Sans_Arabic',
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Icon(Icons.arrow_forward_ios),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: screenWidth > 600 ? 50 : 30),
+                        Image.asset('assets/images/img1.png',
+                            width: imageWidth, height: imageWidth * 0.37),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "رقم الجوال الجديد",
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'IBM_Plex_Sans_Arabic'),
+                        ),
+                        const Text(
+                          "الرجاء ادخال رقم الجوال الجديد لاستقبال رمز التفعيل",
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xffB3B3B3),
+                              fontWeight: FontWeight.w500,
+                              fontFamily: 'IBM_Plex_Sans_Arabic'),
+                        ),
+
+                        const SizedBox(height: 16),
+                        const LoginTextField(),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          height: buttonHeight,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              final viewModel = Provider.of<LoginViewModel>(
+                                  context,
+                                  listen: false);
+                              if (viewModel.userInput.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "يرجى إدخال البيانات المطلوبة",
+                                      style: TextStyle(
+                                          fontFamily: 'IBM_Plex_Sans_Arabic'),
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                                return;
+                              }
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => OtpScreen(
+                                    contactInfo: viewModel.userInput,
+                                    contactType: '',
+                                  ),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              "تأكيد",
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'IBM_Plex_Sans_Arabic',
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      ],
+                    ),
+                  ),
+                ),
+
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildToggleButton(BuildContext context,
+      {required String title,
+        required bool isSelected,
+        required VoidCallback onTap}) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          margin: const EdgeInsets.symmetric(horizontal: 0),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xff409EDC) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.black,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              fontFamily: 'IBM_Plex_Sans_Arabic',
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class ChangeEmailScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => LoginViewModel(),
+      child: Scaffold(
+
+        backgroundColor: Colors.white,
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            double screenWidth = constraints.maxWidth;
+            double padding = screenWidth > 600 ? 48 : 24;
+            double imageWidth = screenWidth > 600 ? 250 : 204;
+            double buttonHeight = screenWidth > 600 ? 60 : 50;
+
+            return Stack(
+              children: [
+                SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: padding),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(height: screenWidth > 600 ? 70 : 50),
+
+                        Row(mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            const Text(
+                              "تغيير البريد الالكتروني ",
+                              style: TextStyle(
+                                color: Color(0xff1D1D1D),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 18,
+                                fontFamily: 'IBM_Plex_Sans_Arabic',
+                              ),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Icon(Icons.arrow_forward_ios),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: screenWidth > 600 ? 50 : 30),
+                        Image.asset('assets/images/img1.png',
+                            width: imageWidth, height: imageWidth * 0.37),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "البريد الالكتروني الجديد",
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              fontFamily: 'IBM_Plex_Sans_Arabic'),
+                        ),
+                        const Text(
+                          "الرجاء ادخال البريد الالكتروني الجديد لاستقبال رمز التفعيل",
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xffB3B3B3),
+                              fontWeight: FontWeight.w500,
+                              fontFamily: 'IBM_Plex_Sans_Arabic'),
+                        ),
+
+                        const SizedBox(height: 16),
+                        const CustomTextFeild2(),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          height: buttonHeight,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              final viewModel = Provider.of<LoginViewModel>(
+                                  context,
+                                  listen: false);
+                              if (viewModel.userInput.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      "يرجى إدخال البيانات المطلوبة",
+                                      style: TextStyle(
+                                          fontFamily: 'IBM_Plex_Sans_Arabic'),
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                                return;
+                              }
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => OtpScreen(
+                                    contactInfo: viewModel.userInput,
+                                    contactType: '',
+                                  ),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              "تأكيد",
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'IBM_Plex_Sans_Arabic',
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      ],
+                    ),
+                  ),
+                ),
+
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+
+}
+
+
+class CustomTextFeild2 extends StatefulWidget {
+  const CustomTextFeild2({super.key});
+
+  @override
+  State<CustomTextFeild2> createState() => _CustomTextFeild2State();
+}
+
+class _CustomTextFeild2State extends State<CustomTextFeild2> {
+  late FocusNode _focusNode;
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final viewModel = Provider.of<LoginViewModel>(context, listen: false);
+    _controller.addListener(() => viewModel.setUserInput(_controller.text));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<LoginViewModel>(
+      builder: (context, viewModel, child) {
+        if (_focusNode.hasFocus) {
+          _focusNode.unfocus();
+          Future.delayed(Duration.zero, () => _focusNode.requestFocus());
+        }
+
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: TextField(
+            controller: _controller,
+            focusNode: _focusNode,
+            decoration: InputDecoration(
+              hintText:
+
+                   "ادخل البريد الإلكتروني",
+              hintStyle: const TextStyle(
+                color: Color(0xffB3B3B3),
+                fontWeight: FontWeight.w500,
+                fontSize: 13,
+                fontFamily: 'IBM_Plex_Sans_Arabic',
+              ),
+              filled: true,
+              fillColor: const Color(0xffFAFAFA),
+              border: OutlineInputBorder(
+                borderSide: BorderSide.none,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              contentPadding:
+              const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            ),
+            keyboardType: TextInputType.emailAddress,
+          ),
+        );
+      },
+    );
+  }
+}
