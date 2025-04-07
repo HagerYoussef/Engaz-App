@@ -5277,14 +5277,6 @@ class _PrinterRequestPageState extends State<PrinterRequestPage> {
   final TextEditingController _copiesController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
 
-  void _addLanguage(String language) {
-    if (!availableLanguages.contains(language)) {
-      setState(() {
-        availableLanguages.add(language);
-      });
-    }
-  }
-
   Future<void> pickFile() async {
     try {
       FilePickerResult? result = await FilePicker.platform.pickFiles();
@@ -5307,38 +5299,100 @@ class _PrinterRequestPageState extends State<PrinterRequestPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('البيانات المحددة',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const Divider(),
-            if (selectedLanguage != null)
-              _buildSummaryItem('لون الطباعة', selectedLanguage!),
-            if (selectedLanguage2 != null)
-              _buildSummaryItem('نوع التغليف', selectedLanguage2!),
-            if (_pagesController.text.isNotEmpty)
-              _buildSummaryItem('عدد الصفحات', _pagesController.text),
-            if (_copiesController.text.isNotEmpty)
-              _buildSummaryItem('عدد النسخ', _copiesController.text),
+
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (selectedLanguage != null)
+                  _buildSummaryItem('لون الطباعة', selectedLanguage!),
+                if (selectedLanguage2 != null)
+                  _buildSummaryItem('نوع التغليف', selectedLanguage2!),
+                Image.asset("assets/images/img59.png")
+              ],
+            ),
+            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (_pagesController.text.isNotEmpty)
+                  _buildSummaryItem('عدد الصفحات', _pagesController.text),
+                if (_copiesController.text.isNotEmpty)
+                  _buildSummaryItem('عدد النسخ', _copiesController.text),
+               Image.asset("assets/images/img59.png")
+              ],
+            ),
+
+
+            if (selectedFiles.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  ...selectedFiles.map((file) {
+                    String extension = file.extension ?? "";
+                    String iconPath = getFileIcon(extension);
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: Row(
+                        children: [
+                          Image.asset(iconPath, width: 50, height: 50),
+
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ],
+              ),
           ],
         ),
       ),
     );
   }
 
-
   List<String> selectedLanguages = [];
 
   Widget _buildSummaryItem(String title, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
+      child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(title, style: const TextStyle(color: Color(0xffB3B3B3))),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold,color:Color(0xff409EDC))),
         ],
       ),
     );
   }
+  Widget _buildDropdown(String label, List<String> options, String? selectedValue, Function(String?) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 4),
+        Container(
+          width: 343,
+          height: 48,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF2F2F2),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              hint: Text(selectedValue ?? 'اختر $label'),
+              isExpanded: true,
+              icon: const Icon(Icons.keyboard_arrow_down),
+              items: options
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -5389,17 +5443,19 @@ class _PrinterRequestPageState extends State<PrinterRequestPage> {
                 const SizedBox(height: 8),
                 _buildSelectedFilesList(),
                 const SizedBox(height: 16),
-                _buildDropdown(
-                    'اختر لون الطباعه'
-                   ,),
-                const SizedBox(height: 16),
-                _buildDropdown(
-                  'اختر نوع  التغليف'
-                  ,),
+                _buildDropdown('اختر لون الطباعة', availableLanguages, selectedLanguage, (value) {
+                  setState(() {
+                    selectedLanguage = value;
+                  });
+                }),
+                _buildDropdown('اختر نوع التغليف', availableLanguages2, selectedLanguage2, (value) {
+                  setState(() {
+                    selectedLanguage2 = value;
+                  });
+                }),
                 const SizedBox(height: 16),
                 const Text('عدد الصفحات',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 TextField(
                   controller: _pagesController,
                   keyboardType: TextInputType.number,
@@ -5412,9 +5468,7 @@ class _PrinterRequestPageState extends State<PrinterRequestPage> {
                       fontSize: 13,
                     ),
                     filled: true,
-                    fillColor: const Color(
-                        0xffF2F2F2
-                    ),
+                    fillColor: const Color(0xffF2F2F2),
                     border: OutlineInputBorder(
                       borderSide: BorderSide.none,
                       borderRadius: BorderRadius.circular(16),
@@ -5426,13 +5480,12 @@ class _PrinterRequestPageState extends State<PrinterRequestPage> {
                 ),
                 const SizedBox(height: 16),
                 const Text('عدد النسخ',
-                    style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 TextField(
                   controller: _copiesController,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    hintText: 'عدد الصفحات المراد طباعتها',
+                    hintText: 'عدد النسخ المراد طباعتها',
                     hintStyle: const TextStyle(
                       color: Color(0xffB3B3B3),
                       fontWeight: FontWeight.w500,
@@ -5440,9 +5493,7 @@ class _PrinterRequestPageState extends State<PrinterRequestPage> {
                       fontSize: 13,
                     ),
                     filled: true,
-                    fillColor: const Color(
-                        0xffF2F2F2
-                    ),
+                    fillColor: const Color(0xffF2F2F2),
                     border: OutlineInputBorder(
                       borderSide: BorderSide.none,
                       borderRadius: BorderRadius.circular(16),
@@ -5472,6 +5523,45 @@ class _PrinterRequestPageState extends State<PrinterRequestPage> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 _buildTextField('ادخل الملاحظات الخاصة بك ان وجدت'),
+                const SizedBox(height: 16),
+                Card(
+                  color: Colors.white,
+                  elevation: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('قيمه الطلب',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
+                        const Divider(),
+                        const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("قيمه الخدمات", style: TextStyle()),
+                              Text("70"),
+                            ]),
+                        const Divider(),
+                        const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("الضريبه", style: TextStyle()),
+                              Text("15"),
+                            ]),
+                        const Divider(),
+                        const Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("الاجمالي",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold, fontSize: 14)),
+                              Text("85"),
+                            ]),
+                      ],
+                    ),
+                  ),
+                ),
                 const SizedBox(height: 16),
                 _buildSubmitButton(),
               ],
@@ -5520,82 +5610,6 @@ class _PrinterRequestPageState extends State<PrinterRequestPage> {
       ),
     );
   }
-
-  Widget _buildRadioSelection() {
-    return Column(
-      children: [
-        RadioListTile<String>(
-          title: const Text('توصيل إلى العنوان'),
-          value: 'delivery',
-          groupValue: selectedDelivery,
-          onChanged: (value) => setState(() => selectedDelivery = value),
-        ),
-        RadioListTile<String>(
-          title: const Text('استلام من المحل'),
-          value: 'pickup',
-          groupValue: selectedDelivery,
-          onChanged: (value) => setState(() => selectedDelivery = value),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDropdown(String label) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 4),
-        Container(
-          width: 343,
-          height: 48,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF2F2F2),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              hint:
-              Text(selectedLanguage ?? 'اختر لون الطباعه '),
-              isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down),
-              items: availableLanguages
-                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  if (value != null) {
-                    selectedLanguage = value;
-                    selectedLanguages.remove(value);
-                    selectedLanguages.insert(0, value);
-                  }
-                });
-              },
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-
-  String getFileIcon(String extension) {
-    switch (extension.toLowerCase()) {
-      case 'pdf':
-        return 'assets/images/img10.png';
-      case 'doc':
-      case 'docx':
-        return 'assets/images/img12.png';
-      case 'xls':
-      case 'xlsx':
-        return 'assets/images/img11.png';
-      default:
-        return 'assets/file.png';
-    }
-  }
-
   Widget _buildSelectedFilesList() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -5644,7 +5658,7 @@ class _PrinterRequestPageState extends State<PrinterRequestPage> {
     );
   }
 
-  String _getFileIcon(String extension) {
+  String getFileIcon(String extension) {
     switch (extension.toLowerCase()) {
       case 'pdf':
         return 'assets/images/img10.png';
@@ -5664,16 +5678,18 @@ class _PrinterRequestPageState extends State<PrinterRequestPage> {
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blue,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
         onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context)=>SaveOrder()));
-        },
-        child: const Text('إرسال الطلب',
-            style: TextStyle(color: Colors.white, fontSize: 16)),
+          Navigator.push(context,MaterialPageRoute(builder:(context)=>SaveOrder()));        },
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16)), backgroundColor: const Color(0xff409EDC),
+        ),
+        child: const Text(
+          'ارسال الطلب',
+          style: TextStyle(fontSize: 16,color:Colors.white),
+        ),
       ),
     );
   }
 }
+
